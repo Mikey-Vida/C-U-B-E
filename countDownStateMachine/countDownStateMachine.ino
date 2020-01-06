@@ -1,13 +1,16 @@
 const int buttonPin = 10;                     // the number of the pushbutton pin
 const int redLED = 2;
-const int yellowLED = 3;
+const int blueLED = 3;
 const int greenLED = 4;
 const unsigned long debounceDuration = 50;    // to avoid button double pressing
+const unsigned long blinkDuration = 250;
 
+bool blinking = false;
 int buttonState = 0;                          // variable for reading the pushbutton status
 int buttonHeld = 0;                           // previous pushbutton state
 enum states {waiting, counting, paused};      // possible state the timer can be in
 enum states currentState = waiting;           // the state the timer is in
+unsigned long lastBlink = 0;
 unsigned long lastDebounceTime = 0;           // timestamp of last pushbutton press
 unsigned long timerEnd = 0;                   // Time when the timer is up
 unsigned long timeRemaining = 0;              // Time left on the counter
@@ -28,6 +31,10 @@ class Pomodoro {
 
     String GetCurrentTimerStep() {
       return TimerStep[currentTimerStep];
+    }
+
+    int GetCurrentTimerStepInt(){
+      return currentTimerStep;
     }
 
     unsigned long GetCurrentTimerDuration() {
@@ -70,23 +77,54 @@ class Timer {
 Pomodoro pomodoro = Pomodoro();
 Timer timer = Timer();
 
+bool blinkTime(){
+  if (millis() > (lastBlink + blinkDuration)){
+    lastBlink = millis();
+    blinking = !blinking;
+  }
+  else{
+    return blinking;
+  }
+}
+
+void chooseColour(int timerStepInt){
+  switch (timerStepInt){
+        case 0:
+        case 2:
+        case 4:
+        case 6:
+          digitalWrite(greenLED, HIGH);
+          break;
+        case 1:
+        case 3:
+        case 5:
+          digitalWrite(blueLED, HIGH);
+          break;
+        case 7:
+          digitalWrite(redLED, HIGH);
+          digitalWrite(blueLED, HIGH);
+          break;
+        }
+  }
+
 void onLED() {
-  digitalWrite(2, LOW);
-  digitalWrite(3, LOW);
-  digitalWrite(4, LOW);
-  int currentLED = 0;
+  digitalWrite(blueLED, LOW);
+  digitalWrite(redLED, LOW);
+  digitalWrite(greenLED, LOW);
   switch(currentState){
     case waiting:
-      currentLED = yellowLED;
+      if (blinking){
+        chooseColour(pomodoro.GetCurrentTimerStepInt());
+      }
       break;
     case counting:
-      currentLED = greenLED;
+      chooseColour(pomodoro.GetCurrentTimerStepInt());
       break;
     case paused:
-      currentLED = redLED;
+      digitalWrite(redLED, HIGH);
+      digitalWrite(greenLED, HIGH);
       break;
     }
-  digitalWrite(currentLED, HIGH);
 }
 
 bool CheckButton() {                          // returns true if valid button press
@@ -107,7 +145,7 @@ void setup() {
   pinMode(buttonPin, INPUT);                  // initialize the pushbutton pin as an input:
   Serial.begin(9600);                         // send and receive at 9600 baud
   pinMode(redLED, OUTPUT);
-  pinMode(yellowLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
   pinMode(greenLED, OUTPUT);
   onLED();
 }
@@ -122,6 +160,9 @@ void loop() {
         currentState = counting;
         onLED();
         timer.SetTimer (pomodoro.GetCurrentTimerDuration());
+      }
+      else if(blinkTime()){
+        onLED();
       }
       break;
     case counting:                            // the countdown timer is counting down
