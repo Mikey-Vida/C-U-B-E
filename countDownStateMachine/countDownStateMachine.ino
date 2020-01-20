@@ -1,7 +1,7 @@
 const int buttonPin = 10;                     // the number of the pushbutton pin
-const int redLED = 2;
-const int blueLED = 3;
-const int greenLED = 4;
+const int redLED = 3;
+const int blueLED = 5;
+const int greenLED = 6;
 const unsigned long debounceDuration = 50;    // to avoid button double pressing
 const unsigned long blinkDuration = 250;
 
@@ -93,24 +93,24 @@ void chooseColour(int timerStepInt){
         case 2:
         case 4:
         case 6:
-          digitalWrite(greenLED, HIGH);
+          analogWrite(greenLED, 255);
           break;
         case 1:
         case 3:
         case 5:
-          digitalWrite(blueLED, HIGH);
+          analogWrite(blueLED, 255);
           break;
         case 7:
-          digitalWrite(redLED, HIGH);
-          digitalWrite(blueLED, HIGH);
+          analogWrite(redLED, 255);
+          analogWrite(blueLED, 255);
           break;
         }
   }
 
 void onLED() {
-  digitalWrite(blueLED, LOW);
-  digitalWrite(redLED, LOW);
-  digitalWrite(greenLED, LOW);
+  analogWrite(blueLED, 0);
+  analogWrite(redLED, 0);
+  analogWrite(greenLED, 0);
   switch(currentState){
     case waiting:
       if (blinking){
@@ -121,8 +121,8 @@ void onLED() {
       chooseColour(pomodoro.GetCurrentTimerStepInt());
       break;
     case paused:
-      digitalWrite(redLED, HIGH);
-      digitalWrite(greenLED, HIGH);
+      analogWrite(redLED, 255);
+      analogWrite(greenLED, 255);
       break;
     }
 }
