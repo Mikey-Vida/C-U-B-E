@@ -28,6 +28,19 @@ bool stillLong = false;
 statusNames currentStatus = waiting;
 unsigned long timeRemaining = 0;
 
+String stepNamesToString(stepNames n){
+  switch(n){
+    case work:
+      return "work";
+    case shortRest:
+      return "shortRest";
+    case longRest:
+      return "longRest";
+    default:
+      return "not a step";
+    }
+  }
+
 buttonStates checkButton(){
   if (lastDebounceTime + debounceDuration > millis()){
     return ignored;
@@ -132,13 +145,13 @@ class Pomodoro {
           stepName = n;
           stepNum = m;
         }
-        getStepName(){
+        stepNames getStepName(){
           return stepName;
         }
-        getStepNum(){
+        int getStepNum(){
           return stepNum;
         }
-        getStepDuration(){
+        int getStepDuration(){
           switch(stepName){
             case work:
               return workTime;
@@ -228,7 +241,7 @@ void chooseColour(int timerStepInt){
           break;
         case 7:
           analogWrite(redLED, 255);
-          analogWrite(blueLED, 255);
+          analogWrite(blueLED, 25);
           break;
         }
   }
@@ -265,7 +278,9 @@ void loop() {
       switch (buttonState){
         case singlePress:
           Serial.print("starting timer for ");
-          Serial.println(pomodoro.getCurrentStepInt());
+          Serial.print(stepNamesToString(pomodoro.getCurrentStepName()));
+          Serial.print(" ");
+          Serial.println(pomodoro.getCurrentStepNum());
           currentStatus = counting;
           timer.setTimer(pomodoro.getCurrentStepDuration());
           onLED();
@@ -273,7 +288,9 @@ void loop() {
         case triplePress:
           pomodoro.nextPomodoroStep();
           Serial.print("skipping to ");
-          Serial.println(pomodoro.getCurrentStepInt());
+          Serial.print(stepNamesToString(pomodoro.getCurrentStepName()));
+          Serial.print(" ");
+          Serial.println(pomodoro.getCurrentStepNum());
           if(blinker.check()){onLED();}
           break;
         case longPress:
